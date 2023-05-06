@@ -1,14 +1,15 @@
 // Set up properties
 const canvasWidth = 800;
 const canvasHeight = 800;
-const neuronRadius = 8;
-const maxNeurons = 1000;
-const connectionThreshold = 150;
+const neuronRadius = 4;
+const maxNeurons = 500;
+const connectionThreshold = 100;
 const connectionForce = 0.05;
 const addNeuronInterval = 125; // in milliseconds
-const activatedColor = 'blue';
-const deactivatedColor = 'lightblue';
-const connectionColor = 'lightblue';
+const activatedColor = 'magenta';
+const deactivatedColor = 'cyan';
+const connectionColor = 'white';
+const minConnectionThreshold = neuronRadius * 20; // Add a minimum distance threshold
 
 // Neuron class
 class Neuron {
@@ -39,7 +40,7 @@ class Neuron {
         let d = dist(this.x, this.y, other.x, other.y);
 
         // Magnetic force and connection
-        if (d < connectionThreshold) {
+        if (d < connectionThreshold && d > minConnectionThreshold) {
           let force = connectionForce * (1 - d / connectionThreshold);
           let dirX = (other.x - this.x) * force;
           let dirY = (other.y - this.y) * force;
@@ -55,11 +56,17 @@ class Neuron {
       }
     });
   }
+  // Add a new method to check if the neuron is under the mouse cursor
+  isUnderMouse() {
+    return dist(this.x, this.y, mouseX, mouseY) < neuronRadius;
+  }
 }
 
 // Global variables
 let neurons = [];
 let lastNeuronAdded = 0;
+let draggingNeuron = null; // Track the neuron being dragged
+
 
 // Set up the canvas
 function setup() {
@@ -97,6 +104,11 @@ function draw() {
     neuron.update(neurons);
     neuron.display();
   });
+  // Update the dragged neuron's position to follow the mouse
+  if (draggingNeuron) {
+    draggingNeuron.x = mouseX;
+    draggingNeuron.y = mouseY;
+  }
 }
 
 // Mouse click event handler
@@ -107,3 +119,27 @@ function mouseClicked() {
     }
   });
 }
+
+
+// Mouse press event handler
+function mousePressed() {
+  // Detect if the mouse is pressing down on a neuron and start dragging
+  neurons.forEach((neuron) => {
+    if (neuron.isUnderMouse()) {
+      draggingNeuron = neuron;
+    }
+  });
+}
+
+// Mouse release event handler
+function mouseReleased() {
+  // Release the dragged neuron when the mouse is released
+  draggingNeuron = null;
+}
+
+
+
+
+
+
+
